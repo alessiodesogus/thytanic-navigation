@@ -101,13 +101,26 @@ def pathfinder(startpoint, endpoint, area):
     print("No path found.")
     return None
 
-def downsamplingprep(image: np.ndarray, endsize: list):
-    tx, ty = np.where(image == 2)#thymio detection
-    ex, ey = np.where(image == 3)#end goal detection
+def downsamplingprep(image: np.ndarray, endsize: list, dilation: int, erosion: int):
+    thymage = (image == 2).astype(int)#thymio channel
+    gimage = (image == 3).astype(int)#end goal channel
+
+    if erosion != 0:
+        thymage = scipy.ndimage.binary_erosion(thymage, np.ones([erosion, erosion], int)).astype(int)
+        gimage = scipy.ndimage.binary_erosion(gimage, np.ones([erosion, erosion], int)).astype(int)
+
+    if dilation !=0:
+        thymage = scipy.ndimage.binary_dilation(thymage, np.ones([erosion, erosion], int)).astype(int)
+        gimage = scipy.ndimage.binary_dilation(gimage, np.ones([erosion, erosion], int)).astype(int)
+
+    tx, ty = np.where(thymage == 1)
+    ex, ey = np.where(gimage == 1)
+    
     thymiopos= [tx[50], ty[50]]
     endpos = [ex[50], ey[50]]
 
     startsize = list(np.shape(image))
+    
     divsize = [math.ceil(startsize[0] / endsize[0]), math.ceil(startsize[1] / endsize[1])]
 
     thymiopos=[math.ceil(thymiopos[0] / divsize[0]), math.ceil(thymiopos[1] / divsize[1])]
