@@ -8,7 +8,6 @@ import cv2
 
 
 def generate_map(
-    image_path: str,
     background_color: np.ndarray,
     obstacle_color: np.ndarray,
     thymio_color: np.ndarray,
@@ -24,14 +23,16 @@ def generate_map(
             3 for target
 
     Args:
-        image_path (str): relative path to the image
         background_color (np.ndarray): rgb values for background color
         thymio_color (np.ndarray): rgb values for thymio color
         obstacle_color (np.ndarray): rgb values for obstacle
         target_color (np.ndarray): rgb values for target
     """
     img_arr = take_picture()
-
+    plt.imshow(img_arr)
+    plt.colorbar()
+    plt.imsave("output/picture.png", img_arr)
+    plt.show()
     # remove alpha channel if needed
     if np.shape(img_arr)[-1] > 3:
         img_arr = img_arr[:, :, :3]
@@ -60,10 +61,14 @@ def generate_map(
             tar_hsv = np.array(
                 colorsys.rgb_to_hsv(target_color[0], target_color[1], target_color[2])
             )
-            bg_norm = np.linalg.norm(hsv - bg_hsv)
+            """bg_norm = np.linalg.norm(hsv - bg_hsv)
             th_norm = np.linalg.norm(hsv - th_hsv)
             obs_norm = np.linalg.norm(hsv - obs_hsv)
-            tar_norm = np.linalg.norm(hsv - tar_hsv)
+            tar_norm = np.linalg.norm(hsv - tar_hsv)"""
+            bg_norm = np.linalg.norm(rgb - background_color)
+            th_norm = np.linalg.norm(rgb - thymio_color)
+            obs_norm = np.linalg.norm(rgb - obstacle_color)
+            tar_norm = np.linalg.norm(rgb - target_color)
             # assigning the correct map object to the map array
             key = np.argmin(np.array([bg_norm, obs_norm, th_norm, tar_norm]))
             map_arr[x, y] = key
@@ -83,17 +88,17 @@ def take_picture() -> np.ndarray:
         np.ndarray: image taken by the camera in numpy array format
     """
     # https://stackoverflow.com/questions/34588464/python-how-to-capture-image-from-webcam-on-click-using-opencv
-    cam = cv2.VideoCapture(1)
+    cam = cv2.VideoCapture(0)
     if not cam.isOpened():
-        cam = cv2.VideoCapture(2)
+        cam = cv2.VideoCapture(1)
     ret = False
     while not ret:
         ret, frame = cam.read()
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     return frame
 
 
 generate_map(
-    "inputs/ThymioMapTest.png",
     background_color=np.array([119, 104, 215]),
     obstacle_color=np.array([0, 0, 0]),
     thymio_color=np.array([256, 256, 256]),
