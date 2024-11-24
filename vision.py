@@ -12,6 +12,7 @@ def generate_map(
     obstacle_color: np.ndarray,
     thymio_color: np.ndarray,
     target_color: np.ndarray,
+    img_path: str = "",
 ) -> np.ndarray:
     """Function that takes the path to an image of the map that contains the Thymio and the Target.
         It then separates the image based on color between background, thymio, obstacles, and target.
@@ -28,7 +29,10 @@ def generate_map(
         obstacle_color (np.ndarray): rgb values for obstacle
         target_color (np.ndarray): rgb values for target
     """
-    img_arr = take_picture()
+    if img_path == "":
+        img_arr = take_picture()
+    else:
+        img_arr = cv2.imread(img_path)
     plt.imshow(img_arr)
     plt.colorbar()
     plt.imsave("output/picture.png", img_arr)
@@ -103,4 +107,5 @@ generate_map(
     obstacle_color=np.array([0, 0, 0]),
     thymio_color=np.array([250, 186, 130]),
     target_color=np.array([255, 100, 100]),
+    img_path="output/picture.png",
 )
