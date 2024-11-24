@@ -38,7 +38,7 @@ def generate_map(
         img_arr = img_arr[:, :, :3]
 
     map_arr = np.empty((len(img_arr[:, 0]), len(img_arr[0])))
-
+    print(img_arr[110:130, 300])
     # looping through the input image and finding the norm for each possible option
     for x in range(len(img_arr[:, 0])):
         for y in range(len(img_arr[0])):
@@ -61,14 +61,14 @@ def generate_map(
             tar_hsv = np.array(
                 colorsys.rgb_to_hsv(target_color[0], target_color[1], target_color[2])
             )
-            """bg_norm = np.linalg.norm(hsv - bg_hsv)
+            bg_norm = np.linalg.norm(hsv - bg_hsv)
             th_norm = np.linalg.norm(hsv - th_hsv)
             obs_norm = np.linalg.norm(hsv - obs_hsv)
-            tar_norm = np.linalg.norm(hsv - tar_hsv)"""
-            bg_norm = np.linalg.norm(rgb - background_color)
+            tar_norm = np.linalg.norm(hsv - tar_hsv)
+            """bg_norm = np.linalg.norm(rgb - background_color)
             th_norm = np.linalg.norm(rgb - thymio_color)
             obs_norm = np.linalg.norm(rgb - obstacle_color)
-            tar_norm = np.linalg.norm(rgb - target_color)
+            tar_norm = np.linalg.norm(rgb - target_color)"""
             # assigning the correct map object to the map array
             key = np.argmin(np.array([bg_norm, obs_norm, th_norm, tar_norm]))
             map_arr[x, y] = key
@@ -101,6 +101,6 @@ def take_picture() -> np.ndarray:
 generate_map(
     background_color=np.array([119, 104, 215]),
     obstacle_color=np.array([0, 0, 0]),
-    thymio_color=np.array([256, 256, 256]),
-    target_color=np.array([256, 0, 0]),
+    thymio_color=np.array([250, 186, 130]),
+    target_color=np.array([255, 100, 100]),
 )
