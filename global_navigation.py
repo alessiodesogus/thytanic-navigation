@@ -25,10 +25,8 @@ def downsampling(image: np.ndarray, endsize: list, obstacledilation: int, thresh
     if obstacledilation != 0:
         image = scipy.ndimage.binary_dilation(image, np.ones([obstacledilation, obstacledilation], int)).astype(int)
 
-
     windowsize = [math.ceil(startsize[0] / endsize[0]), math.ceil(startsize[1] / endsize[1])]
     endimage = np.zeros(endsize, int)
-
 
     for k in range(endsize[0]):
         for j in range(endsize[1]):
@@ -41,34 +39,83 @@ def downsampling(image: np.ndarray, endsize: list, obstacledilation: int, thresh
 
     return endimage
 
+
+def pathmaker(point, history):
+    path = [point[0:2]]  # Initialize path with the endpoint
+    k = 0
+    while k < 1000:  # Prevent infinite loops in case of unexpected errors
+        k += 1
+        # Check if the point has no parent (-1, -1), indicating the start point
+        if np.array_equal(point[4:6], [-1, -1]):
+            return np.array(path[::-1])  # Return the reversed path (from start to endpoint)
+        else:
+            # Find the parent of the current point in the history
+            parent_indices = np.where((history[:, 0:2] == point[4:6]).all(axis=1))[0]
+            if len(parent_indices) == 0:
+                raise ValueError("Parent point not found in history! Path reconstruction failed.")
+
+            parent_index = parent_indices[0]
+            point = history[parent_index]  # Move to the parent point
+            path.append(point[0:2])  # Append the parent's coordinates to the path
+
 def pathfinder(startpoint, endpoint, area):
-    xarea, yarea = np.shape(area))
-    unexplored = np.asarray([startpoint + [0, -1, -1]])
-    unexplored = np.append(unexplored, [startpoint + [3, -1, -1]], axis = 0)
+    xarea, yarea = np.shape(area)
+    # A point is composed of x, y, path length, heuristic, and parent point x and y
+    unexplored = np.array([startpoint + [0, sum((x - y) ** 2 for x, y in zip(startpoint, endpoint)), -1, -1]], int)
+    explored = np.zeros((0, 6), int)  # Initialize explored as an empty 2D array
 
-    print(unexplored)
-    while unexplored.any():
-        #select point wiht the best f-value, and remove it from unexplored
-        currentid = np.argmin(unexplored[:,2])
+    while len(unexplored) > 0:  # Ensure unexplored is non-empty
+
+
+        # Select point with the best f-value and remove it from unexplored
+        currentid = np.argmin(unexplored[:, 3])
         current = unexplored[currentid]
-        np.delete(unexplored, currentid)
-        print(current[0:1])
-        if current[0:1]:
-            #smashy return lines TODO
-            return current
-        children = [[current[0]-1, current[1]],[current[0], current[1]+1],[current[0]+1, current[1]],[current[0], current[1]-1]]
+        explored = np.vstack([explored, current])  # Add to explored
+        unexplored = np.delete(unexplored, currentid, axis=0)  # Remove selected point
+
+        # If the current point is the endpoint, return the path
+        if np.array_equal(current[0:2], endpoint):
+
+            return pathmaker(current, explored), explored, unexplored  # Adjust this to return the desired path format
+
+        # Generate the four potential children
+        children = [
+            np.array([current[0] - 1, current[1], current[2] + 1, 0, current[0], current[1]]),
+            np.array([current[0], current[1] + 1, current[2] + 1, 0, current[0], current[1]]),
+            np.array([current[0] + 1, current[1], current[2] + 1, 0, current[0], current[1]]),
+            np.array([current[0], current[1] - 1, current[2] + 1, 0, current[0], current[1]])
+        ]
+
         for child in children:
-            #detect obstacle or out of bounds
-            if not (0 <= child[0] < xarea and 0 <= child[1] < yarea) or area[child[0], child[1]] == 1:
-                children.remove(child)
-            else:
-                return 0
-        break
+            # Detect if child is out of bounds or an obstacle
+            if 0 <= child[0] < xarea and 0 <= child[1] < yarea and area[int(child[0]), int(child[1])] != 1:
+                # Check if child is already in unexplored or explored
+                in_unexplored = any((child[0:2] == unexplored[:, 0:2]).all(axis=1)) if len(unexplored) > 0 else False
+                in_explored = any((child[0:2] == explored[:, 0:2]).all(axis=1)) if len(explored) > 0 else False
 
+                if not in_unexplored and not in_explored:
+                    # Calculate heuristic: path length + Euclidean distance to endpoint
+                    child[3] = sum((x - y) ** 2 for x, y in zip(child[0:2], endpoint)) + child[2]
+                    unexplored = np.vstack([unexplored, child])  # Add child to unexplored
 
+    print("No path found.")
+    return None
 
+def downsamplingprep(image: np.ndarray, endsize: list):
+    tx, ty = np.where(image == 2)#thymio detection
+    ex, ey = np.where(image == 3)#end goal detection
+    thymiopos= [tx[50], ty[50]]
+    endpos = [ex[50], ey[50]]
+
+    startsize = list(np.shape(image))
+    divsize = [math.ceil(startsize[0] / endsize[0]), math.ceil(startsize[1] / endsize[1])]
+
+    thymiopos=[math.ceil(thymiopos[0] / divsize[0]), math.ceil(thymiopos[1] / divsize[1])]
+    endpos = [math.ceil(endpos[0] / divsize[0]), math.ceil(endpos[1] / divsize[1])]
+    outputimage = np.delete(image, np.where(image>1))
+        return thymiopos, endpos, outputimage
 
 
 # example downsampling input
 # downsampling(np.asarray(7 * [[0, 1, 0, 0, 1, 1, 0]]), [3, 3], 5, 0.6)
-pathfinder([0,0], [5,0], np.asarray(7 * [[0, 0, 0, 0, 1, 1, 0]]))
+# print(pathfinder([0, 0], [5, 0], np.asarray(7 * [[0, 0, 0, 0, 1, 1, 0]])))
