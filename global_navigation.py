@@ -13,9 +13,6 @@ def downsampling(image: np.ndarray, endsize: list, obstacledilation: int, thresh
 
     """
     startsize = list(np.shape(image))
-    print(image)
-    print(startsize)
-    print(endsize)
 
     if startsize <= endsize:
         print("the goal is larger than the image, check again")
@@ -33,6 +30,7 @@ def downsampling(image: np.ndarray, endsize: list, obstacledilation: int, thresh
             # runs the window, selects a submatrix and caps to the sides, we do not pad
             window = image[k * windowsize[0]:min((k + 1) * windowsize[0], startsize[0]), :][:,
                      j * windowsize[1]:min((j + 1) * windowsize[1], startsize[1])]
+
             avg = np.sum(window) / window.size
             if avg > threshold:
                 endimage[k, j] = 1
@@ -94,14 +92,16 @@ def pathfinder(startpoint, endpoint, area):
                 in_explored = any((child[0:2] == explored[:, 0:2]).all(axis=1)) if len(explored) > 0 else False
 
                 if not in_unexplored and not in_explored:
-                    # Calculate heuristic: path length + Euclidean distance to endpoint
+                    # Calculate heuristic: Euclidean distance to endpoint + path length
                     child[3] = sum((x - y) ** 2 for x, y in zip(child[0:2], endpoint)) + child[2]
+
                     unexplored = np.vstack([unexplored, child])  # Add child to unexplored
 
     print("No path found.")
     return None
 
 def downsamplingprep(image: np.ndarray, endsize: list, dilation: int, erosion: int):
+    outputimage = (image == 1).astype(int)#obstacles only channel
     thymage = (image == 2).astype(int)#thymio channel
     gimage = (image == 3).astype(int)#end goal channel
 
@@ -125,7 +125,7 @@ def downsamplingprep(image: np.ndarray, endsize: list, dilation: int, erosion: i
 
     thymiopos=[math.ceil(thymiopos[0] / divsize[0]), math.ceil(thymiopos[1] / divsize[1])]
     endpos = [math.ceil(endpos[0] / divsize[0]), math.ceil(endpos[1] / divsize[1])]
-    outputimage = np.delete(image, np.where(image>1))
+
     return thymiopos, endpos, outputimage
 
 
