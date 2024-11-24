@@ -33,6 +33,7 @@ def generate_map(
         img_arr = take_picture()
     else:
         img_arr = cv2.imread(img_path)
+        img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
     plt.imshow(img_arr)
     plt.colorbar()
     plt.imsave("output/picture.png", img_arr)
@@ -42,7 +43,6 @@ def generate_map(
         img_arr = img_arr[:, :, :3]
 
     map_arr = np.empty((len(img_arr[:, 0]), len(img_arr[0])))
-    print(img_arr[110:130, 300])
     # looping through the input image and finding the norm for each possible option
     for x in range(len(img_arr[:, 0])):
         for y in range(len(img_arr[0])):
@@ -105,7 +105,7 @@ def take_picture() -> np.ndarray:
 generate_map(
     background_color=np.array([119, 104, 215]),
     obstacle_color=np.array([0, 0, 0]),
-    thymio_color=np.array([250, 186, 130]),
-    target_color=np.array([255, 100, 100]),
+    thymio_color=np.array([255, 190, 130]),
+    target_color=np.array([255, 140, 100]),
     img_path="output/picture.png",
 )
