@@ -113,7 +113,7 @@ def downsamplingprep(image: np.ndarray, endsize: list):
     thymiopos=[math.ceil(thymiopos[0] / divsize[0]), math.ceil(thymiopos[1] / divsize[1])]
     endpos = [math.ceil(endpos[0] / divsize[0]), math.ceil(endpos[1] / divsize[1])]
     outputimage = np.delete(image, np.where(image>1))
-        return thymiopos, endpos, outputimage
+    return thymiopos, endpos, outputimage
 
 
 # example downsampling input
