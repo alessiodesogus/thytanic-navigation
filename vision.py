@@ -3,6 +3,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import colorsys
 import cv2
+from scipy import ndimage
 
 # https://www.geeksforgeeks.org/how-to-convert-images-to-numpy-array/
 
@@ -36,7 +37,7 @@ def generate_map(
         img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
     plt.imshow(img_arr)
     plt.colorbar()
-    plt.imsave("output/picture.png", img_arr)
+    plt.imsave("output/picture2.png", img_arr)
     plt.show()
     # remove alpha channel if needed
     if np.shape(img_arr)[-1] > 3:
@@ -76,11 +77,26 @@ def generate_map(
             # assigning the correct map object to the map array
             key = np.argmin(np.array([bg_norm, obs_norm, th_norm, tar_norm]))
             map_arr[x, y] = key
-
     # display map
     plt.imshow(map_arr)
     plt.colorbar()
     plt.imsave("output/map_hsv_cam.png", map_arr)
+    plt.show()
+    # https://stackoverflow.com/questions/48013355/eliminating-number-of-connected-pixels-smaller-than-some-specified-number-thresh
+    # remove noise in the output map
+    labels, Nlabels = ndimage.measurements.label(map_arr)
+    label_size = [(labels == label).sum() for label in range(Nlabels + 1)]
+    for label, size in enumerate(label_size):
+        print("label %s is %s pixels in size" % (label, size))
+
+    # now remove the labels
+    for label, size in enumerate(label_size):
+        if size < 500:
+            map_arr[labels == label] = 0
+    # display map
+    plt.imshow(map_arr)
+    plt.colorbar()
+    plt.imsave("output/map_hsv_cam_noise_removed.png", map_arr)
     plt.show()
     return map_arr
 
@@ -107,5 +123,4 @@ generate_map(
     obstacle_color=np.array([0, 0, 0]),
     thymio_color=np.array([255, 190, 130]),
     target_color=np.array([255, 140, 100]),
-    img_path="output/picture.png",
 )
