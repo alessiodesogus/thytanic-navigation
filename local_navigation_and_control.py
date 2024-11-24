@@ -24,6 +24,14 @@ class ThytanicController:
         self.detection_threshold = 2000  # NEED TO BE FINE-TUNED
         self.obstacle_side = None
 
+        # Astofi controller parameters
+        self.k_rho = 20
+        self.k_alpha = 30
+        self.k_beta = -10
+        self.wheel_radius = 4 
+        self.axle_length = 9.5 
+        self.min_distance = 5 # NEED TO BE FINE-TUNED
+
     def establish_connection(self):
         """Connect to the robot and lock it."""
         self.robot_client = ClientAsync()
@@ -106,6 +114,9 @@ class ThytanicController:
         sensor_data = self.read_proximity_sensors()
         is_obstacle_detected = any(value > self.detection_threshold for value in sensor_data)
 
+        # Get speed from the controller
+        # left_speed, right_speed = self.control_robot([0, 0, 0], [10, 10])
+
         if self.robot_state == ThytanicState.STOP:
             self.set_wheel_speed(0, 0)
             return
@@ -120,3 +131,74 @@ class ThytanicController:
 
         elif self.robot_state == ThytanicState.AVOIDING_OBSTACLE and is_obstacle_detected:
             self.maneuver_around_obstacle(sensor_data)
+
+    def astolfi_control(self, robot_state, goal):
+        """
+        Compute control commands for the robot.
+
+        Parameters:
+        - robot_state: [x, y, theta] (current position and orientation in radians)
+        - goal: [x_goal, y_goal] (goal position)
+
+        Returns:
+        - v: Translational velocity
+        - omega: Rotational velocity
+        """
+        x, y, theta = robot_state
+        x_goal, y_goal = goal
+
+        # Compute polar coordinates relative to the goal
+        delta_x = x_goal - x
+        delta_y = y_goal - y
+        rho = np.sqrt(delta_x*2 + delta_y*2)  # Distance to the goal
+        alpha = -theta + np.arctan2(delta_y, delta_x)  # Orientation to the goal
+        beta = -alpha - theta  # Final orientation adjustment
+
+        # Normalize alpha and beta to [-pi, pi]
+        alpha = (alpha + np.pi) % (2 * np.pi) - np.pi
+        beta = (beta + np.pi) % (2 * np.pi) - np.pi
+
+        # Compute control law
+        v = self.k_rho * rho
+        omega = self.k_alpha * alpha + self.k_beta * beta
+
+        return v, omega
+
+    def compute_wheel_speeds(self, v, omega):
+        """
+        Convert translational and rotational velocities to wheel speeds.
+
+        Parameters:
+        - v: Translational velocity
+        - omega: Rotational velocity
+
+        Returns:
+        - left_speed: Left wheel speed
+        - right_speed: Right wheel speed
+        """
+        left_speed = (v - omega * self.axle_length / 2) / self.wheel_radius
+        right_speed = (v + omega * self.axle_length / 2) / self.wheel_radius
+        return left_speed, right_speed
+
+    def control_robot(self, robot_state, goal):
+        """
+        Main function to control the robot.
+
+        Parameters:
+        - robot_state: [x, y, theta] (current position and orientation in radians)
+        - goal: [x_goal, y_goal] (goal position)
+
+        Returns:
+        - left_speed: Left wheel speed
+        - right_speed: Right wheel speed
+        """
+        # Compute control commands
+        v, omega = self.astolfi_control(robot_state, goal)
+
+        # If close enough to the goal, stop
+        if v < self.min_distance:
+            return 0, 0
+
+        # Convert to wheel speeds
+        left_speed, right_speed = self.compute_wheel_speeds(v, omega)
+        return left_speed, right_speed
