@@ -68,7 +68,7 @@ def kalman_filter(thytanic, camera) : #, x_est_prev, P_est_prev):
                       [0, 0, 0, 1, 0, 0],
                       [0, 0, 0, 0, 0, 1]])
         # measurement covariance
-        R = np.diag([var_speed_meas, var_speed_meas, var_speed_meas])
+        R = np.diag([var_vel_meas, var_vel_meas, var_vel_meas])
         
     else:
         #if abs(GPS[2] - x_est_a_priori[4]) > 45:######wtf ?
@@ -85,9 +85,9 @@ def kalman_filter(thytanic, camera) : #, x_est_prev, P_est_prev):
         # state to output matrix
         H = np.identity(6)
         # measurement covariance
-        R = np.diag([var_x_meas, (var_speed_meas + var_angle_meas), 
-                     var_y_meas, (var_speed_meas + var_angle_meas), 
-                     var_angle_meas, var_speed_meas])
+        R = np.diag([var_x_meas, (var_vel_meas + var_angle_meas), 
+                     var_y_meas, (var_vel_meas + var_angle_meas), 
+                     var_angle_meas, var_vel_meas])
 
         """
     # Filtering step
