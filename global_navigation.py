@@ -16,7 +16,7 @@ def downsampling(
     """
     startsize = list(np.shape(image))
 
-    if startsize <= endsize:
+    if startsize < endsize:
         print("the goal is larger than the image, check again")
         print(
             "goal dimensions: " + str(endsize) + ". image dimensions: " + str(startsize)
@@ -174,8 +174,8 @@ def downsamplingprep(image: np.ndarray, endsize: list, dilation: int, erosion: i
     tx, ty = np.where(thymage == 1)
     ex, ey = np.where(gimage == 1)
 
-    thymiopos = [tx[50], ty[50]]
-    endpos = [ex[50], ey[50]]
+    thymiopos = [np.average(tx), np.average(ty)]
+    endpos = [np.average(ex), np.average(ey)]
 
     startsize = list(np.shape(image))
 

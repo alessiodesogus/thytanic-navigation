@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import colorsys
 import cv2
 from scipy import ndimage
+import time as time
 
 # https://www.geeksforgeeks.org/how-to-convert-images-to-numpy-array/
 
@@ -13,6 +14,8 @@ def get_current_state(
     obstacle_color: np.ndarray,
     thymio_color: np.ndarray,
     target_color: np.ndarray,
+    back_color: np.ndarray,
+    front_color: np.ndarray,
     img_path: str = "",
 ) -> np.ndarray:
     """Function that takes the path to an image of the map that contains the Thymio and the Target.
@@ -26,10 +29,10 @@ def get_current_state(
 
     Args:
         cam (cv2.VideoCapture): connected camera
-        background_color (np.ndarray): rgb values for background color
-        thymio_color (np.ndarray): rgb values for thymio color
-        obstacle_color (np.ndarray): rgb values for obstacle
-        target_color (np.ndarray): rgb values for target
+        background_color (np.ndarray): hsv values for background color
+        thymio_color (np.ndarray): hsv values for thymio color
+        obstacle_color (np.ndarray): hsv values for obstacle
+        target_color (np.ndarray): hsv values for target
         img_path (str): if this argument is equal to "", a new picture is taken by the supplied camera, otherwise the image is loaded from img_path
     """
     if img_path == "":
@@ -42,8 +45,6 @@ def get_current_state(
     plt.imsave("output/picture2.png", img_arr)
     plt.show()
 
-    orientation = get_orientation(cv2.cvtColor(img_arr, cv2.COLOR_RGB2GRAY))
-    print(orientation)
     # reduce amount of pixels in image to speed up processing
     print(np.size(img_arr))
     img_arr = cv2.pyrDown(cv2.pyrDown(cv2.pyrDown(img_arr)))
@@ -51,40 +52,40 @@ def get_current_state(
     # remove alpha channel if needed
     if np.shape(img_arr)[-1] > 3:
         img_arr = img_arr[:, :, :3]
-
+    tune_hsv(img_arr)
+    img_arr_hsv = cv2.cvtColor(img_arr, cv2.COLOR_RGB2HSV)
     map_arr = np.empty((len(img_arr[:, 0]), len(img_arr[0])))
     obstacles = np.zeros_like(map_arr)
-    # converting colors to hsv space
-    bg_hsv = np.array(
-        colorsys.rgb_to_hsv(
-            background_color[0], background_color[1], background_color[2]
-        )
-    )
-    th_hsv = np.array(
-        colorsys.rgb_to_hsv(thymio_color[0], thymio_color[1], thymio_color[2])
-    )
-    obs_hsv = np.array(
-        colorsys.rgb_to_hsv(obstacle_color[0], obstacle_color[1], obstacle_color[2])
-    )
-    tar_hsv = np.array(
-        colorsys.rgb_to_hsv(target_color[0], target_color[1], target_color[2])
-    )
+
     # looping through the input image and finding the norm for each possible option
     for x in range(len(img_arr[:, 0])):
         for y in range(len(img_arr[0])):
-            rgb = img_arr[x, y]
+            hsv = img_arr_hsv[x, y]
             # hsv color space is more robust against lighting changes when taking 3d norm
-            hsv = np.array(colorsys.rgb_to_hsv(rgb[0], rgb[1], rgb[2]))
-            bg_norm = np.linalg.norm(hsv - bg_hsv)
-            th_norm = np.linalg.norm(hsv - th_hsv)
-            obs_norm = np.linalg.norm(hsv - obs_hsv)
-            tar_norm = np.linalg.norm(hsv - tar_hsv)
-
+            bg_norm = np.linalg.norm(hsv - background_color)
+            th_norm = np.linalg.norm(hsv - thymio_color)
+            obs_norm = np.linalg.norm(hsv - obstacle_color)
+            tar_norm = np.linalg.norm(hsv - target_color)
+            back_norm = np.linalg.norm(hsv - back_color)
+            front_norm = np.linalg.norm(hsv - front_color)
             # assigning the correct map object to the map array
-            key = np.argmin(np.array([bg_norm, obs_norm, th_norm, tar_norm]))
+            key = np.argmin(
+                np.array([bg_norm, obs_norm, th_norm, tar_norm, back_norm, front_norm])
+            )
             map_arr[x, y] = key
             if key == 1:
                 obstacles[x, y] = 1
+    back_image = (map_arr == 4).astype(int)
+    tx, ty = np.where(back_image == 1)
+    back_pos = [np.average(tx), np.average(ty)]
+    print("position of front of the thymio")
+    print(back_pos)
+    front_image = (map_arr == 5).astype(int)
+    tx, ty = np.where(front_image == 1)
+    front_pos = [np.average(tx), np.average(ty)]
+    print("position of back of the thymio")
+    print(front_pos)
+    orientation = get_orientation(back_pos, front_pos)
     # display map
     plt.imshow(map_arr)
     plt.colorbar()
@@ -130,10 +131,11 @@ def init_cam() -> cv2.VideoCapture:
     cam = cv2.VideoCapture(0)
     if not cam.isOpened():
         cam = cv2.VideoCapture(1)
+    time.sleep(0.1)
     return cam
 
 
-def get_orientation(img: np.ndarray) -> float:
+def get_orientation(p0: list[np.float64], p1: list[np.float64]) -> float:
     """searches the suplied image for a qr code. if a code is found it returns the orientation of the code relative to the camera
 
     Args:
@@ -142,25 +144,27 @@ def get_orientation(img: np.ndarray) -> float:
     Returns:
         float: orientation of the qr code relative to the image in rad, -1000 if no qr code was found
     """
-    # https://temugeb.github.io/python/computer_vision/2021/06/15/QR-Code_Orientation.html
-    qr = cv2.QRCodeDetector()
-    ret_qr, points = qr.detect(img)
-    print(ret_qr)
-    if ret_qr:
-        # get angle between points in cam coordinate frame
-        p0 = points[0][0]
-        p1 = points[0][1]
-        orientation = np.atan((p1[1] - p0[1]) / (p1[0] - p0[0]))
-        print(np.rad2deg(orientation))
-        return orientation
-    return -1000
+    orientation = np.atan((p1[1] - p0[1]) / (p1[0] - p0[0]))
+    print(np.rad2deg(orientation))
+    return orientation
 
 
-"""cam = init_cam()
-img = take_picture(cam)
-img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-get_orientation(img)
-plt.imshow(img)
-plt.colorbar()
-plt.imsave("output/qrtest.png", img)
-plt.show()"""
+def tune_hsv(img: np.ndarray):
+    """function only used to get the correct hsv values
+
+    Args:
+        img (np.ndarray): rgb camera image of the scene
+    """
+    img_hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    plt.title("h")
+    plt.imshow(img_hsv[:, :, 0])
+    plt.colorbar()
+    plt.show()
+    plt.title("s")
+    plt.imshow(img_hsv[:, :, 1])
+    plt.colorbar()
+    plt.show()
+    plt.title("v")
+    plt.imshow(img_hsv[:, :, 2])
+    plt.colorbar()
+    plt.show()
