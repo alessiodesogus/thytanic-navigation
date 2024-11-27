@@ -44,15 +44,15 @@ def get_current_state(
     plt.show()
 
     # reduce amount of pixels in image to speed up processing
-    img_arr = cv2.pyrDown(cv2.pyrDown(cv2.pyrDown(img_arr)))
+    img_arr = cv2.pyrDown(cv2.pyrDown(img_arr))
 
-    # tune_hsv(img_arr)
+    tune_hsv(img_arr)
     img_arr_hsv = cv2.cvtColor(img_arr, cv2.COLOR_RGB2HSV)
     map_arr = np.empty((len(img_arr[:, 0]), len(img_arr[0])))
     obstacles = np.zeros_like(map_arr)
     back_image = np.zeros_like(map_arr)
     front_image = np.zeros_like(map_arr)
-    print(obstacle_range)
+    # print(obstacle_range)
     # looping through the input image and finding the norm for each possible option
     for x in range(len(img_arr[:, 0])):
         for y in range(len(img_arr[0])):
@@ -76,20 +76,27 @@ def get_current_state(
 
     tx, ty = np.where(back_image == 1)
     back_pos = [np.average(tx), np.average(ty)]
-    print("position of front of the thymio")
-    print(back_pos)
+    # print("position of front of the thymio")
+    # print(back_pos)
 
     tx, ty = np.where(front_image == 1)
     front_pos = [np.average(tx), np.average(ty)]
-    print("position of back of the thymio")
-    print(front_pos)
+    # print("position of back of the thymio")
+    # print(front_pos)
     orientation = get_orientation(back_pos, front_pos)
 
+    tx, ty = np.where(map_arr == 2)
+    thymio_pos = [np.average(tx), np.average(ty)]
+    print("position of the thymio")
+    print(thymio_pos)
+
+    print("orientation")
+    print(np.rad2deg(orientation))
     # display map
-    plt.imshow(map_arr)
+    """plt.imshow(map_arr)
     plt.colorbar()
     plt.imsave("output/map_hsv_cam.png", map_arr)
-    plt.show()
+    plt.show()"""
     # https://stackoverflow.com/questions/48013355/eliminating-number-of-connected-pixels-smaller-than-some-specified-number-thresh
     # remove noise in the output map
     labels, nlabels = ndimage.measurements.label(obstacles)
@@ -104,7 +111,11 @@ def get_current_state(
     plt.colorbar()
     plt.imsave("output/map_hsv_cam_noise_removed.png", map_arr)
     plt.show()
-    return map_arr, orientation
+    return (
+        map_arr,
+        thymio_pos,
+        np.rad2deg(orientation),
+    )
 
 
 def take_picture(cam: cv2.VideoCapture) -> np.ndarray:
@@ -144,7 +155,6 @@ def get_orientation(p0: list[np.float64], p1: list[np.float64]) -> float:
         float: orientation of the qr code relative to the image in rad, -1000 if no qr code was found
     """
     orientation = np.atan((p1[1] - p0[1]) / (p1[0] - p0[0]))
-    print(np.rad2deg(orientation))
     return orientation
 
 
