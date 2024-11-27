@@ -1,23 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import colorsys
 import cv2
 from scipy import ndimage
-import time as time
+import time
 
 # https://www.geeksforgeeks.org/how-to-convert-images-to-numpy-array/
 
 
 def get_current_state(
     cam: cv2.VideoCapture,
-    background_color: np.ndarray,
-    obstacle_color: np.ndarray,
-    thymio_color: np.ndarray,
-    target_color: np.ndarray,
-    back_color: np.ndarray,
-    front_color: np.ndarray,
+    obstacle_range: list[np.ndarray],
+    target_range: list[np.ndarray],
+    th_back_range: list[np.ndarray],
+    th_front_range: list[np.ndarray],
     img_path: str = "",
-) -> np.ndarray:
+) -> tuple[np.ndarray, float]:
     """Function that takes the path to an image of the map that contains the Thymio and the Target.
         It then separates the image based on color between background, thymio, obstacles, and target.
         the separation is done by using the euclidian norm in the rgb space.
@@ -26,13 +23,14 @@ def get_current_state(
             1 for obstacle
             2 for thymio
             3 for target
+        And the orientation of the Thymio in rad
 
     Args:
         cam (cv2.VideoCapture): connected camera
-        background_color (np.ndarray): hsv values for background color
-        thymio_color (np.ndarray): hsv values for thymio color
-        obstacle_color (np.ndarray): hsv values for obstacle
-        target_color (np.ndarray): hsv values for target
+        obstacle_range (list[np.ndarray]): range of allowed hsv values for obstacles
+        target_color (list[np.ndarray]): hsv range for target
+        th_back_range (list[np.ndarray]): range of allowed hsv values for the back of the thymio
+        th_front_image (list[np.ndarray]): hsv range for the front of the thymio
         img_path (str): if this argument is equal to "", a new picture is taken by the supplied camera, otherwise the image is loaded from img_path
     """
     if img_path == "":
@@ -46,46 +44,47 @@ def get_current_state(
     plt.show()
 
     # reduce amount of pixels in image to speed up processing
-    print(np.size(img_arr))
     img_arr = cv2.pyrDown(cv2.pyrDown(cv2.pyrDown(img_arr)))
-    print(np.size(img_arr))
-    # remove alpha channel if needed
-    if np.shape(img_arr)[-1] > 3:
-        img_arr = img_arr[:, :, :3]
-    tune_hsv(img_arr)
+
+    # tune_hsv(img_arr)
     img_arr_hsv = cv2.cvtColor(img_arr, cv2.COLOR_RGB2HSV)
     map_arr = np.empty((len(img_arr[:, 0]), len(img_arr[0])))
     obstacles = np.zeros_like(map_arr)
-
+    back_image = np.zeros_like(map_arr)
+    front_image = np.zeros_like(map_arr)
+    print(obstacle_range)
     # looping through the input image and finding the norm for each possible option
     for x in range(len(img_arr[:, 0])):
         for y in range(len(img_arr[0])):
             hsv = img_arr_hsv[x, y]
             # hsv color space is more robust against lighting changes when taking 3d norm
-            bg_norm = np.linalg.norm(hsv - background_color)
-            th_norm = np.linalg.norm(hsv - thymio_color)
-            obs_norm = np.linalg.norm(hsv - obstacle_color)
-            tar_norm = np.linalg.norm(hsv - target_color)
-            back_norm = np.linalg.norm(hsv - back_color)
-            front_norm = np.linalg.norm(hsv - front_color)
+            key = 0
+            if in_hsv_range(hsv, obstacle_range):
+                key = 1
+            if in_hsv_range(hsv, th_back_range):
+                key = 2
+                back_image[x, y] = 1
+            if in_hsv_range(hsv, th_front_range):
+                key = 2
+                front_image[x, y] = 1
+            if in_hsv_range(hsv, target_range):
+                key = 3
             # assigning the correct map object to the map array
-            key = np.argmin(
-                np.array([bg_norm, obs_norm, th_norm, tar_norm, back_norm, front_norm])
-            )
             map_arr[x, y] = key
             if key == 1:
                 obstacles[x, y] = 1
-    back_image = (map_arr == 4).astype(int)
+
     tx, ty = np.where(back_image == 1)
     back_pos = [np.average(tx), np.average(ty)]
     print("position of front of the thymio")
     print(back_pos)
-    front_image = (map_arr == 5).astype(int)
+
     tx, ty = np.where(front_image == 1)
     front_pos = [np.average(tx), np.average(ty)]
     print("position of back of the thymio")
     print(front_pos)
     orientation = get_orientation(back_pos, front_pos)
+
     # display map
     plt.imshow(map_arr)
     plt.colorbar()
@@ -147,6 +146,22 @@ def get_orientation(p0: list[np.float64], p1: list[np.float64]) -> float:
     orientation = np.atan((p1[1] - p0[1]) / (p1[0] - p0[0]))
     print(np.rad2deg(orientation))
     return orientation
+
+
+def in_hsv_range(hsv: np.ndarray, hsv_range: list[np.ndarray]) -> bool:
+    """Given hsv values for a given pixel checks if it lies in a predefined hsv range
+
+    Args:
+        hsv (np.ndarray): hsv values of a pixel
+        hsv_range (list[np.ndarray]): range of hsv values (min, max) of the desired object
+
+    Returns:
+        bool: True if hsv values lie in range, false otherwise
+    """
+    for i, _ in enumerate(hsv):
+        if not (hsv[i] > hsv_range[0][i] and hsv[i] < hsv_range[1][i]):
+            return False
+    return True
 
 
 def tune_hsv(img: np.ndarray):
