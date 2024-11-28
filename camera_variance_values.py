@@ -16,21 +16,21 @@ for i in range(500):
     px.append(pos[0])
     py.append(pos[1])
     rots.append(rot)
-with open("covariance_test5.txt", "w") as f:
+with open("camera_values6.txt", "w") as f:
     f.write("xpos = [")
     for pos in px:
         f.write(str(pos))
         f.write(", ")
-    f.write("]")
+    f.write("] \n")
 
     f.write("ypos = [")
     for pos in py:
         f.write(str(pos))
         f.write(", ")
-    f.write("]")
+    f.write("] \n")
 
     f.write("orientation = [")
     for rot in rots:
         f.write(str(rot))
         f.write(", ")
-    f.write("]")
+    f.write("] \n")
