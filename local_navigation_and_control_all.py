@@ -28,8 +28,8 @@ class ThytanicController:
         self.conversion_factor = 0.48
 
         # Astofi controller parameters
-        self.k_rho = 80  # NEED TO BE FINE-TUNED
-        self.k_alpha = 14  # NEED TO BE FINE-TUNED
+        self.k_rho = 20  # NEED TO BE FINE-TUNED
+        self.k_alpha = 28  # NEED TO BE FINE-TUNED
         # self.k_beta = -15 # NEED TO BE FINE-TUNED
         self.wheel_radius = 2.1
         self.axle_length = 9.5
@@ -247,9 +247,10 @@ class ThytanicController:
             self.goal_idx += 1  # get new target
             return 0, 0
 
-        if rho > self.max_distance:
+        """if rho > self.max_distance:
             self.goal_idx += 1  # get new
-            return 0, 0
+            print("POINTS SKIPPED")
+            return 0, 0"""
 
         # Convert translational and rotational velocities to wheel speeds
         left_speed = (v - omega * self.axle_length / 2) / self.wheel_radius

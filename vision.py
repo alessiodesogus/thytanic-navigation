@@ -38,15 +38,14 @@ def get_current_state(
     else:
         img_arr = cv2.imread(img_path)
         img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
-    plt.imshow(img_arr)
+    """plt.imshow(img_arr)
     plt.colorbar()
     plt.imsave("output/picture2.png", img_arr)
-    plt.show()
+    plt.show()"""
 
     # reduce amount of pixels in image to speed up processing
     img_arr = cv2.pyrDown(cv2.pyrDown(img_arr))
 
-    tune_hsv(img_arr)
     img_arr_hsv = cv2.cvtColor(img_arr, cv2.COLOR_RGB2HSV)
     map_arr = np.empty((len(img_arr[:, 0]), len(img_arr[0])))
     obstacles = np.zeros_like(map_arr)
@@ -87,11 +86,11 @@ def get_current_state(
 
     tx, ty = np.where(map_arr == 2)
     thymio_pos = [np.average(tx), np.average(ty)]
-    print("position of the thymio")
+    """print("position of the thymio")
     print(thymio_pos)
 
     print("orientation")
-    print(np.rad2deg(orientation))
+    print(np.rad2deg(orientation))"""
     # display map
     """plt.imshow(map_arr)
     plt.colorbar()
@@ -107,10 +106,10 @@ def get_current_state(
         if size < 50:
             map_arr[labels == label] = 0
     # display map
-    plt.imshow(map_arr)
+    """plt.imshow(map_arr)
     plt.colorbar()
     plt.imsave("output/map_hsv_cam_noise_removed.png", map_arr)
-    plt.show()
+    plt.show()"""
     return (
         map_arr,
         thymio_pos,
@@ -193,10 +192,3 @@ def tune_hsv(img: np.ndarray):
     plt.imshow(img_hsv[:, :, 2])
     plt.colorbar()
     plt.show()
-
-
-cam = init_cam()
-for i in range(5):
-    img = take_picture(cam)
-    time.sleep(0.1)
-tune_hsv(img)
