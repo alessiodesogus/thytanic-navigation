@@ -3,12 +3,20 @@ import numpy as np
 from tdmclient import ClientAsync, aw
 
 
+
+def alpha(p1, p2):
+    #angle helper function
+    ang1 = np.arctan2(*p1[::-1])
+    ang2 = np.arctan2(*p2[::-1])
+    return (ang1 - ang2) % (2 * np.pi)
+
 class ThytanicState(Enum):
     """Define the three operational states of the Thymio."""
 
     GLOBAL_MOVEMENT = 0
     AVOIDING_OBSTACLE = 1
     STOP = 2
+    READYING_GLOBAL_MOVEMENT = 3
 
 
 class ThytanicController:
@@ -36,6 +44,7 @@ class ThytanicController:
         self.min_distance = 3  # NEED TO BE FINE-TUNED
         self.max_distance = 15  # NEED TO BE FINE-TUNED
         self.mm_per_pixel = 15.3  # NEED TO BE FINE-TUNED
+        self.path = []
 
     def establish_connection(self):
         """Connect to the robot and lock it."""
@@ -158,13 +167,13 @@ class ThytanicController:
             self.set_wheel_speed(0, 0)
             return
 
-        if (
+        elif (
             self.robot_state == ThytanicState.GLOBAL_MOVEMENT
             and not is_obstacle_detected
         ):
             self.control_robot()
 
-        if self.robot_state == ThytanicState.GLOBAL_MOVEMENT and is_obstacle_detected:
+        elif self.robot_state == ThytanicState.GLOBAL_MOVEMENT and is_obstacle_detected:
             self.control_robot()
             # self.robot_state = ThytanicState.AVOIDING_OBSTACLE
             # self.obstacle_side = self.maneuver_around_obstacle(sensor_data)
@@ -173,11 +182,25 @@ class ThytanicController:
             self.robot_state == ThytanicState.AVOIDING_OBSTACLE
             and not is_obstacle_detected
         ):
-            self.robot_state = ThytanicState.GLOBAL_MOVEMENT
-            # recompute optimal path
-            # wait (angle =0)
-            self.control_robot()
-            # self.set_wheel_speed(self.normal_speed, self.normal_speed)
+            self.robot_state = ThytanicState.READYING_GLOBAL_MOVEMENT
+            
+            #recompute path
+        
+        elif(
+            self.robot_state = ThytanicState.READYING_GLOBAL_MOVEMENT
+            and abs(self.x_est[4]-alpha(self.path[0], self.path[4])) < 0.1
+        ): self.robot_state = ThytanicState.GLOBAL_MOVEMENT
+            
+
+        elif(self.robot_state = ThytanicState.READYING_GLOBAL_MOVEMENT
+        ):
+            if(self.x_est[4]-alpha(self.path[0], self.path[4])<0):
+                self. self.rotate_robot("RIGHT", self.avoidance_turn_speed)
+            else:
+                self. self.rotate_robot("LEFT", self.avoidance_turn_speed)
+            
+        )
+
 
         elif (
             self.robot_state == ThytanicState.AVOIDING_OBSTACLE and is_obstacle_detected
@@ -259,3 +282,6 @@ class ThytanicController:
         self.set_wheel_speed(left_speed, right_speed)
 
         return left_speed, right_speed
+
+
+
