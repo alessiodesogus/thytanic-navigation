@@ -114,7 +114,7 @@ def get_current_state(
     return (
         map_arr,
         thymio_pos,
-        np.rad2deg(orientation),
+        orientation,
     )
 
 
@@ -152,7 +152,7 @@ def get_orientation(p0: list[np.float64], p1: list[np.float64]) -> float:
         img (np.ndarray): grayscale image of the camera
 
     Returns:
-        float: orientation of the qr code relative to the image in rad, -1000 if no qr code was found
+        float: orientation of the qr code relative to the image in rad
     """
     orientation = np.atan2((p1[1] - p0[1]), (p1[0] - p0[0]))
     return orientation
@@ -193,3 +193,10 @@ def tune_hsv(img: np.ndarray):
     plt.imshow(img_hsv[:, :, 2])
     plt.colorbar()
     plt.show()
+
+
+cam = init_cam()
+for i in range(5):
+    img = take_picture(cam)
+    time.sleep(0.1)
+tune_hsv(img)
