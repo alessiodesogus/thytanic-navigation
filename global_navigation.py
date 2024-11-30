@@ -72,6 +72,8 @@ def pathmaker(point, history):
 
 
 def pathfinder(startpoint, endpoint, area):
+    # pathfinder takes in a start and an endpoint, which must be 2d coordinates [x, y] that fit within area
+    #area must be a binary 2d matrix where 1 is an obstacle pixel, and 0 a free path pixel
     xarea, yarea = np.shape(area)
     # A point is composed of x, y, path length, heuristic, and parent point x and y
     unexplored = np.array(
