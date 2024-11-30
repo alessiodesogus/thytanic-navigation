@@ -154,7 +154,7 @@ def get_orientation(p0: list[np.float64], p1: list[np.float64]) -> float:
     Returns:
         float: orientation of the qr code relative to the image in rad, -1000 if no qr code was found
     """
-    orientation = np.atan((p1[1] - p0[1]) / (p1[0] - p0[0]))
+    orientation = np.atan2((p1[1] - p0[1]), (p1[0] - p0[0]))
     return orientation
 
 
