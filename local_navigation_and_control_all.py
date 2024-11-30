@@ -28,12 +28,12 @@ class ThytanicController:
         self.conversion_factor = 0.48
 
         # Astofi controller parameters
-        self.k_rho = 100  # NEED TO BE FINE-TUNED
+        self.k_rho = 80  # NEED TO BE FINE-TUNED
         self.k_alpha = 14  # NEED TO BE FINE-TUNED
         # self.k_beta = -15 # NEED TO BE FINE-TUNED
         self.wheel_radius = 2.1
         self.axle_length = 9.5
-        self.min_distance = 5  # NEED TO BE FINE-TUNED
+        self.min_distance = 3  # NEED TO BE FINE-TUNED
         self.max_distance = 15  # NEED TO BE FINE-TUNED
         self.mm_per_pixel = 15.3  # NEED TO BE FINE-TUNED
 
