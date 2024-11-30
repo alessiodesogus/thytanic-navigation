@@ -3,12 +3,12 @@ import numpy as np
 from tdmclient import ClientAsync, aw
 
 
-
 def alpha(p1, p2):
-    #angle helper function
+    # angle helper function
     ang1 = np.arctan2(*p1[::-1])
     ang2 = np.arctan2(*p2[::-1])
     return (ang1 - ang2) % (2 * np.pi)
+
 
 class ThytanicState(Enum):
     """Define the three operational states of the Thymio."""
@@ -180,24 +180,20 @@ class ThytanicController:
             and not is_obstacle_detected
         ):
             self.robot_state = ThytanicState.READYING_GLOBAL_MOVEMENT
-            
-            #recompute path
-        
-        elif(
-            self.robot_state = ThytanicState.READYING_GLOBAL_MOVEMENT
-            and abs(self.x_est[4]-alpha(self.path[0], self.path[4])) < 0.1
-        ): self.robot_state = ThytanicState.GLOBAL_MOVEMENT
-            
 
-        elif(self.robot_state = ThytanicState.READYING_GLOBAL_MOVEMENT
+            # recompute path
+
+        elif (
+            self.robot_state == ThytanicState.READYING_GLOBAL_MOVEMENT
+            and abs(self.x_est[4] - alpha(self.path[0], self.path[4])) < 0.1
         ):
-            if(self.x_est[4]-alpha(self.path[0], self.path[4])<0):
-                self. self.rotate_robot("RIGHT", self.avoidance_turn_speed)
-            else:
-                self. self.rotate_robot("LEFT", self.avoidance_turn_speed)
-            
-        )
+            self.robot_state = ThytanicState.GLOBAL_MOVEMENT
 
+        elif self.robot_state == ThytanicState.READYING_GLOBAL_MOVEMENT:
+            if self.x_est[4] - alpha(self.path[0], self.path[4]) < 0:
+                self.rotate_robot("RIGHT", self.avoidance_turn_speed)
+            else:
+                self.rotate_robot("LEFT", self.avoidance_turn_speed)
 
         elif (
             self.robot_state == ThytanicState.AVOIDING_OBSTACLE and is_obstacle_detected
@@ -287,6 +283,3 @@ class ThytanicController:
         self.set_wheel_speed(left_speed, right_speed)
 
         return left_speed, right_speed
-
-
-
