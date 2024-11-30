@@ -219,7 +219,12 @@ def thytanic_velocity(thytanic, angle):
     """
     speed_left, speed_right = (speed for speed in thytanic.read_wheel_speed())
     # Linear and angular velocity computations
-    linear_velocity = abs(speed_left + speed_right) * thytanic.wheel_radius / 2
+    linear_velocity = (
+        abs(speed_left + speed_right)
+        * thytanic.wheel_radius
+        / thytanic.mm_per_pixel
+        / 2
+    )
     angular_velocity = (
         (speed_right - speed_left) * thytanic.wheel_radius / thytanic.axle_length
     )

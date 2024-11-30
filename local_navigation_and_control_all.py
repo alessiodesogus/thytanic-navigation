@@ -21,21 +21,21 @@ class ThytanicController:
 
         # State and speed parameters
         self.robot_state = ThytanicState.STOP
-        self.normal_speed = 200  # NEED TO BE FINE-TUNED
+        self.normal_speed = 50  # NEED TO BE FINE-TUNED
         self.avoidance_turn_speed = 150  # NEED TO BE FINE-TUNED
         self.detection_threshold = 2000  # NEED TO BE FINE-TUNED
         self.obstacle_side = None
         self.conversion_factor = 0.48
 
         # Astofi controller parameters
-        self.k_rho = 20  # NEED TO BE FINE-TUNED
-        self.k_alpha = 28  # NEED TO BE FINE-TUNED
+        self.k_rho = 8  # NEED TO BE FINE-TUNED
+        self.k_alpha = 9  # NEED TO BE FINE-TUNED
         # self.k_beta = -15 # NEED TO BE FINE-TUNED
-        self.wheel_radius = 2.1
-        self.axle_length = 9.5
-        self.min_distance = 3  # NEED TO BE FINE-TUNED
+        self.wheel_radius = 21
+        self.axle_length = 95
+        self.min_distance = 7  # NEED TO BE FINE-TUNED
         self.max_distance = 15  # NEED TO BE FINE-TUNED
-        self.mm_per_pixel = 15.3  # NEED TO BE FINE-TUNED
+        self.mm_per_pixel = 9.75  # NEED TO BE FINE-TUNED
 
     def establish_connection(self):
         """Connect to the robot and lock it."""
@@ -60,8 +60,6 @@ class ThytanicController:
         - left_speed: Speed for the left wheel.
         - right_speed: Speed for the right wheel.
         """
-        left_speed = left_speed / self.conversion_factor * self.mm_per_pixel
-        right_speed = right_speed / self.conversion_factor * self.mm_per_pixel
         speed_config = {
             "motor.left.target": [int(left_speed)],
             "motor.right.target": [int(right_speed)],
@@ -253,8 +251,16 @@ class ThytanicController:
             return 0, 0"""
 
         # Convert translational and rotational velocities to wheel speeds
-        left_speed = (v - omega * self.axle_length / 2) / self.wheel_radius
-        right_speed = (v + omega * self.axle_length / 2) / self.wheel_radius
+        left_speed = (
+            v * self.mm_per_pixel / self.conversion_factor
+            - omega * self.axle_length / 2
+        ) / self.wheel_radius
+        right_speed = (
+            v * self.mm_per_pixel / self.conversion_factor
+            + omega * self.axle_length / 2
+        ) / self.wheel_radius
+        print("left speed", left_speed)
+        print("right speed", right_speed)
         # get the speed infos to motors
         self.set_wheel_speed(left_speed, right_speed)
 

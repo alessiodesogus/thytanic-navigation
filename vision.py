@@ -113,7 +113,7 @@ def get_current_state(
     return (
         map_arr,
         thymio_pos,
-        orientation,
+        orientation - np.pi / 2,
     )
 
 
