@@ -65,14 +65,14 @@ def kalman_filter(thytanic, camera):  # , x_est_prev, P_est_prev):
     x_est_prev = thytanic.x_est
     P_est_prev = thytanic.P_est
 
-    if (
-        camera is None
-    ):  # No camera available, only use the Thymio's velocity and angle from the odometry
+    if np.isnan(
+        camera
+    ).any():  # No camera available, only use the Thymio's velocity and angle from the odometry
         # a = (angle)%360
         # if(a >180): a = a - 180   # for keeping the angle between -180 and 180
         # x_est_prev[4] = x_est_prev[4] % 360
         # if (x_est_prev[4] > 180): x_est_prev[4] = x_est_prev[4] - 180
-
+        print("Look at me, no camera!")
         # calculate v_x, v_y and v_angular
         velocity = thytanic_velocity(thytanic, x_est_prev[4])
         y_true = np.array(velocity)

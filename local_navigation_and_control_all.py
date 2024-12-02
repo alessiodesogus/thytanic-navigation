@@ -1,6 +1,7 @@
 from enum import Enum
 import numpy as np
 from tdmclient import ClientAsync, aw
+import time
 
 
 def alpha(p1, p2):
@@ -30,14 +31,14 @@ class ThytanicController:
         # State and speed parameters
         self.robot_state = ThytanicState.STOP
         self.normal_speed = 50  # NEED TO BE FINE-TUNED
-        self.avoidance_turn_speed = 150  # NEED TO BE FINE-TUNED
-        self.detection_threshold = 2000  # NEED TO BE FINE-TUNED
+        self.avoidance_turn_speed = 80  # NEED TO BE FINE-TUNED
+        self.detection_threshold = 1500  # NEED TO BE FINE-TUNED
         self.obstacle_side = None
         self.conversion_factor = 0.48
 
         # Astofi controller parameters
-        self.k_rho = 8  # NEED TO BE FINE-TUNED
-        self.k_alpha = 9  # NEED TO BE FINE-TUNED
+        self.k_rho = 32  # NEED TO BE FINE-TUNED
+        self.k_alpha = 36  # NEED TO BE FINE-TUNED
         # self.k_beta = -15 # NEED TO BE FINE-TUNED
         self.wheel_radius = 21
         self.axle_length = 95
@@ -100,7 +101,10 @@ class ThytanicController:
 
     def read_accelerometer(self):
         aw(self.robot_node.wait_for_variables({"acc"}))
-        print("accelerometer:", self.robot_node.v.acc)
+        print("accelerometer:", self.robot_node.v.acc[0])
+        print("accelerometer:", self.robot_node.v.acc[1])
+        print("accelerometer:", self.robot_node.v.acc[2])
+        return self.robot_node.v.acc
 
     def rotate_robot(self, direction, rotation_speed):
         """
@@ -172,15 +176,22 @@ class ThytanicController:
 
         elif self.robot_state == ThytanicState.GLOBAL_MOVEMENT and is_obstacle_detected:
             self.control_robot()
-            # self.robot_state = ThytanicState.AVOIDING_OBSTACLE
-            # self.obstacle_side = self.maneuver_around_obstacle(sensor_data)
+            self.robot_state = ThytanicState.AVOIDING_OBSTACLE
+            self.obstacle_side = self.maneuver_around_obstacle(sensor_data)
+        elif (
+            self.robot_state == ThytanicState.AVOIDING_OBSTACLE and is_obstacle_detected
+        ):
+            self.maneuver_around_obstacle(sensor_data)
 
         elif (
             self.robot_state == ThytanicState.AVOIDING_OBSTACLE
             and not is_obstacle_detected
         ):
-            self.robot_state = ThytanicState.READYING_GLOBAL_MOVEMENT
-
+            self.set_wheel_speed(100, 100)
+            time.sleep(3)
+            self.goal_idx += 2
+            self.robot_state = ThytanicState.GLOBAL_MOVEMENT
+            self.control_robot()
             # recompute path
 
         elif (
@@ -188,17 +199,6 @@ class ThytanicController:
             and abs(self.x_est[4] - alpha(self.path[0], self.path[4])) < 0.1
         ):
             self.robot_state = ThytanicState.GLOBAL_MOVEMENT
-
-        elif self.robot_state == ThytanicState.READYING_GLOBAL_MOVEMENT:
-            if self.x_est[4] - alpha(self.path[0], self.path[4]) < 0:
-                self.rotate_robot("RIGHT", self.avoidance_turn_speed)
-            else:
-                self.rotate_robot("LEFT", self.avoidance_turn_speed)
-
-        elif (
-            self.robot_state == ThytanicState.AVOIDING_OBSTACLE and is_obstacle_detected
-        ):
-            self.maneuver_around_obstacle(sensor_data)
 
     def astolfi_control(self, state_est):
         """
