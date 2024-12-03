@@ -12,7 +12,7 @@ def alpha(p1, p2):
 
 
 class ThytanicState(Enum):
-    """Define the three operational states of the Thymio."""
+    """Define the four operational states of the Thymio."""
 
     GLOBAL_MOVEMENT = 0
     AVOIDING_OBSTACLE = 1
