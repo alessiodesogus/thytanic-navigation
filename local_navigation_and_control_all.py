@@ -12,7 +12,7 @@ def alpha(p1, p2):
 
 
 class ThytanicState(Enum):
-    """Define the operational states of the Thymio."""
+    """Define the operational states of the Thytanic."""
 
     GLOBAL_MOVEMENT = 0
     AVOIDING_OBSTACLE = 1
@@ -20,10 +20,11 @@ class ThytanicState(Enum):
 
 
 class ThytanicController:
-    """Control the operation and movement of the Thymio robot (Thytanic)."""
+    """Control the operation and movement of the Thytanic."""
 
     def __init__(self):
-        """Initialize robot attributes and state variables."""
+        """Initialize Thytanic attributes and state variables."""
+
         self.robot_node = None
         self.robot_client = None
 
@@ -46,14 +47,16 @@ class ThytanicController:
         self.mm_per_pixel = 9.75  # NEED TO BE FINE-TUNED
 
     def establish_connection(self):
-        """Connect to the robot and lock it."""
+        """Connect to the Thytanic and lock it."""
+
         self.robot_client = ClientAsync()
         self.robot_node = aw(self.robot_client.wait_for_node())
         self.robot_client.process_waiting_messages()
         aw(self.robot_node.lock())
 
     def disconnect(self):
-        """Stop the robot and release the connection."""
+        """Stop the Thytanic and release the connection."""
+
         self.set_wheel_speed(0, 0)
         aw(self.robot_node.unlock())
         self.robot_node = None
@@ -61,13 +64,8 @@ class ThytanicController:
         self.robot_state = ThytanicState.STOP
 
     def set_wheel_speed(self, left_speed, right_speed):
-        """
-        Assign speeds to the robot's left and right wheels.
+        """Assign speeds to the Thytanic's left and right wheels."""
 
-        Arguments:
-        - left_speed: Speed for the left wheel.
-        - right_speed: Speed for the right wheel.
-        """
         speed_config = {
             "motor.left.target": [int(left_speed)],
             "motor.right.target": [int(right_speed)],
@@ -75,12 +73,8 @@ class ThytanicController:
         aw(self.robot_node.set_variables(speed_config))
 
     def read_wheel_speed(self):
-        """
-        Read speed data from the robot.
+        """Read speed from the Thytanic."""
 
-        Returns:
-        - speed_values: values of the motors speed
-        """
         aw(
             self.robot_node.wait_for_variables(
                 {"motor.left.speed", "motor.right.speed"}
@@ -99,6 +93,8 @@ class ThytanicController:
         return speed_values
 
     def read_accelerometer(self):
+        """Read accelerometer from the Thytanic."""
+
         aw(self.robot_node.wait_for_variables({"acc"}))
         print("accelerometer:", self.robot_node.v.acc[0])
         print("accelerometer:", self.robot_node.v.acc[1])
@@ -106,54 +102,37 @@ class ThytanicController:
         return self.robot_node.v.acc
 
     def rotate_robot(self, direction, rotation_speed):
-        """
-        Rotate the robot in the specified direction.
+        """Rotate the Thytanic in the specified direction."""
 
-        Arguments:
-        - direction: "LEFT" or "RIGHT".
-        - rotation_speed: Speed of the rotation for both wheels.
-        """
-        if direction == "LEFT":
+        if direction == "BABOR":
             self.set_wheel_speed(-rotation_speed, rotation_speed)
-        elif direction == "RIGHT":
+        elif direction == "TRIBORD":
             self.set_wheel_speed(rotation_speed, -rotation_speed)
 
     def read_proximity_sensors(self):
-        """
-        Retrieve proximity sensor data from the robot.
+        """Retrieve proximity sensor data from the Thytanic."""
 
-        Returns:
-        - sensor_values: An array of proximity sensor readings.
-        """
         aw(self.robot_node.wait_for_variables({"prox.horizontal"}))
         sensor_values = self.robot_node.v.prox.horizontal[0:5]
         aw(self.robot_client.sleep(0.0001))
         return sensor_values
 
     def maneuver_around_obstacle(self, sensor_readings):
-        """
-        Perform a maneuver to avoid an obstacle based on sensor data.
+        """Perform a maneuver to avoid an obstacle based on sensor data."""
 
-        Arguments:
-        - sensor_readings: Proximity sensor data.
-
-        Returns:
-        - obstacle_direction: The detected direction of the obstacle.
-        """
         # Turn right if the obstacle is on the left side
         if any(value > self.detection_threshold for value in sensor_readings[0:2]):
-            self.rotate_robot("RIGHT", self.avoidance_turn_speed)
-            return "LEFT"
+            self.rotate_robot("TRIBORD", self.avoidance_turn_speed)
+            return "BABOR"
 
         # Turn left if the obstacle is on the right side
         elif any(value > self.detection_threshold for value in sensor_readings[2:5]):
-            self.rotate_robot("LEFT", self.avoidance_turn_speed)
-            return "RIGHT"
+            self.rotate_robot("BABOR", self.avoidance_turn_speed)
+            return "TRIBORD"
 
     def update_robot_state(self):
-        """
-        Update the robot's operational state and execute corresponding actions.
-        """
+        """Update the Thytanic's operational state and execute corresponding actions."""
+
         # Get sensor data
         sensor_data = self.read_proximity_sensors()
         is_obstacle_detected = any(
@@ -193,17 +172,8 @@ class ThytanicController:
             self.control_robot()
 
     def astolfi_control(self, state_est):
-        """
-        Compute control commands for the robot.
+        """Compute control commands for the Thytanic."""
 
-        Parameters:
-        - state_est: [x, y, theta] (current position and orientation in radians)
-        - goal: [x_goal, y_goal] (goal position)
-
-        Returns:
-        - v: Translational velocity
-        - omega: Rotational velocity
-        """
         x, y, theta = state_est
         print("x", x, "y", y, "theta", theta)
         x_goal, y_goal = self.goal
@@ -234,17 +204,8 @@ class ThytanicController:
         return rho, v, omega
 
     def control_robot(self):
-        """
-        Main function to control the robot.
-
-        Parameters:
-        - state_est: [x, y, theta] (current position and orientation in radians)
-        - goal: [x_goal, y_goal] (goal position)
-
-        Returns:
-        - left_speed: Left wheel speed
-        - right_speed: Right wheel speed
-        """
+        """Main function to control the Thytanic."""
+        
         state_est = [self.x_est[0], self.x_est[2], self.x_est[4]]  # x y theta
         # Compute control commands
         rho, v, omega = self.astolfi_control(state_est)
