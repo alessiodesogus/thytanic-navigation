@@ -28,6 +28,7 @@ def downsampling(
             image, np.ones([obstacledilation, obstacledilation], int)
         ).astype(int)
 
+    #size of megapixel
     windowsize = [
         math.ceil(startsize[0] / endsize[0]),
         math.ceil(startsize[1] / endsize[1]),
@@ -36,11 +37,11 @@ def downsampling(
 
     for k in range(endsize[0]):
         for j in range(endsize[1]):
-            # runs the window, selects a submatrix and caps to the sides, we do not pad
+            # runs the window, selects a submatrix and caps to the sides, no padding
             window = image[
                 k * windowsize[0] : min((k + 1) * windowsize[0], startsize[0]), :
             ][:, j * windowsize[1] : min((j + 1) * windowsize[1], startsize[1])]
-
+            #configurable linear threshold for obstacle detection
             avg = np.sum(window) / window.size
             if avg > threshold:
                 endimage[k, j] = 1
@@ -54,7 +55,7 @@ def pathmaker(point, history):
     k = 0
     while k < 1000:  # Prevent infinite loops in case of unexpected errors
         k += 1
-        # Check if the point has no parent (-1, -1), indicating the start point
+        # Check if the point's parent (-1, -1), indicating the start point
         if np.array_equal(point[4:6], [-1, -1]):
             return np.array(
                 path[::-1]
@@ -63,9 +64,7 @@ def pathmaker(point, history):
             # Find the parent of the current point in the history
             parent_indices = np.where((history[:, 0:2] == point[4:6]).all(axis=1))[0]
             if len(parent_indices) == 0:
-                raise ValueError(
-                    "Parent point not found in history! Path reconstruction failed."
-                )
+                return None
 
             parent_index = parent_indices[0]
             point = history[parent_index]  # Move to the parent point
@@ -73,12 +72,14 @@ def pathmaker(point, history):
 
 
 def pathfinder(startpoint, endpoint, area):
+    """
     # pathfinder takes in a start and an endpoint, which must be 2d coordinates [x, y] that fit within area
     # area must be a binary 2d matrix where 1 is an obstacle pixel, and 0 a free path pixel
     # nonone values should be treated as zeros
 
     #this function outputs a list of points as defined above, starting from startpoint
-    
+    """
+
     xarea, yarea = np.shape(area)
     # A point is composed of x, y, path length, heuristic, and parent point x and y
     unexplored = np.array(
@@ -141,7 +142,7 @@ def pathfinder(startpoint, endpoint, area):
                     if len(explored) > 0
                     else False
                 )
-
+                #check both conditions
                 if not in_unexplored and not in_explored:
                     # Calculate heuristic: Euclidean distance to endpoint + path length
                     child[3] = (
