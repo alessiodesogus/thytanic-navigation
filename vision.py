@@ -42,7 +42,6 @@ def get_current_state(
     plt.colorbar()
     plt.imsave("output/picture2.png", img_arr)
     plt.show()"""
-    # tune_hsv(img_arr)
     # reduce amount of pixels in image to speed up processing
     img_arr = cv2.pyrDown(cv2.pyrDown(img_arr))
 
@@ -140,7 +139,7 @@ def init_cam() -> cv2.VideoCapture:
     cam = cv2.VideoCapture(0)
     if not cam.isOpened():
         cam = cv2.VideoCapture(1)
-    time.sleep(0.1)
+    time.sleep(0.5)
     return cam
 
 

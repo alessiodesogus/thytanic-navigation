@@ -49,7 +49,7 @@ def downsampling(
 
 
 def pathmaker(point, history):
-    #helper function to pathfinder, do not call directly
+    # helper function to pathfinder, do not call directly
     path = [point[0:2]]  # Initialize path with the endpoint
     k = 0
     while k < 1000:  # Prevent infinite loops in case of unexpected errors
@@ -77,8 +77,8 @@ def pathfinder(startpoint, endpoint, area):
     # area must be a binary 2d matrix where 1 is an obstacle pixel, and 0 a free path pixel
     # nonone values should be treated as zeros
 
-    #this function outputs a list of points as defined above, starting from startpoint
-    
+    # this function outputs a list of points as defined above, starting from startpoint
+
     xarea, yarea = np.shape(area)
     # A point is composed of x, y, path length, heuristic, and parent point x and y
     unexplored = np.array(
@@ -162,7 +162,7 @@ def downsamplingprep(image: np.ndarray, endsize: list, dilation: int, erosion: i
     thymage = (image == 2).astype(int)  # thymio channel
     gimage = (image == 3).astype(int)  # end goal channel
     # the opening operation is setup to destroy parasite pixels and aid further processing
-    
+
     if erosion != 0:
         thymage = scipy.ndimage.binary_erosion(
             thymage, np.ones([erosion, erosion], int)
@@ -197,7 +197,7 @@ def downsamplingprep(image: np.ndarray, endsize: list, dilation: int, erosion: i
         math.ceil(thymiopos[1] / divsize[1]),
     ]
     endpos = [math.ceil(endpos[0] / divsize[0]), math.ceil(endpos[1] / divsize[1])]
-    #output 2d points and a binary output image for pathfinder
+    # output 2d points and a binary output image for pathfinder
     return thymiopos, endpos, outputimage
 
 
