@@ -12,12 +12,11 @@ def alpha(p1, p2):
 
 
 class ThytanicState(Enum):
-    """Define the four operational states of the Thymio."""
+    """Define the operational states of the Thymio."""
 
     GLOBAL_MOVEMENT = 0
     AVOIDING_OBSTACLE = 1
     STOP = 2
-    READYING_GLOBAL_MOVEMENT = 3
 
 
 class ThytanicController:
@@ -192,13 +191,6 @@ class ThytanicController:
             self.goal_idx += 2
             self.robot_state = ThytanicState.GLOBAL_MOVEMENT
             self.control_robot()
-            # recompute path
-
-        elif (
-            self.robot_state == ThytanicState.READYING_GLOBAL_MOVEMENT
-            and abs(self.x_est[4] - alpha(self.path[0], self.path[4])) < 0.1
-        ):
-            self.robot_state = ThytanicState.GLOBAL_MOVEMENT
 
     def astolfi_control(self, state_est):
         """
