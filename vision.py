@@ -42,10 +42,8 @@ def get_current_state(
     plt.colorbar()
     plt.imsave("output/picture2.png", img_arr)
     plt.show()"""
-
     # reduce amount of pixels in image to speed up processing
     img_arr = cv2.pyrDown(cv2.pyrDown(img_arr))
-
     img_arr_hsv = cv2.cvtColor(img_arr, cv2.COLOR_RGB2HSV)
     map_arr = np.empty((len(img_arr[:, 0]), len(img_arr[0])))
     obstacles = np.zeros_like(map_arr)
@@ -103,11 +101,11 @@ def get_current_state(
 
     # now remove the labels
     for label, size in enumerate(label_size):
-        if size < 50:
+        if size < 25:
             map_arr[labels == label] = 0
     # display map
     """plt.imshow(map_arr)
-    plt.colorbar()
+    plt.colorbar()"
     plt.imsave("output/map_hsv_cam_noise_removed.png", map_arr)
     plt.show()"""
     return (
@@ -125,6 +123,7 @@ def take_picture(cam: cv2.VideoCapture) -> np.ndarray:
     """
     ret = False
     while not ret:
+        time.sleep(0.01)
         ret, frame = cam.read()
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     return frame
@@ -140,7 +139,7 @@ def init_cam() -> cv2.VideoCapture:
     cam = cv2.VideoCapture(0)
     if not cam.isOpened():
         cam = cv2.VideoCapture(1)
-    time.sleep(0.1)
+    time.sleep(0.5)
     return cam
 
 
@@ -192,3 +191,9 @@ def tune_hsv(img: np.ndarray):
     plt.imshow(img_hsv[:, :, 2])
     plt.colorbar()
     plt.show()
+
+
+cam = init_cam()
+img = take_picture(cam)
+for i in range(5):
+    tune_hsv(img)
