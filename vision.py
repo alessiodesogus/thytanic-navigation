@@ -193,7 +193,7 @@ def tune_hsv(img: np.ndarray):
     plt.show()
 
 
-cam = init_cam()
+"""cam = init_cam()
 img = take_picture(cam)
 for i in range(5):
-    tune_hsv(img)
+    tune_hsv(img)"""

@@ -28,7 +28,7 @@ def downsampling(
             image, np.ones([obstacledilation, obstacledilation], int)
         ).astype(int)
 
-    #size of megapixel
+    # size of megapixel
     windowsize = [
         math.ceil(startsize[0] / endsize[0]),
         math.ceil(startsize[1] / endsize[1]),
@@ -41,7 +41,7 @@ def downsampling(
             window = image[
                 k * windowsize[0] : min((k + 1) * windowsize[0], startsize[0]), :
             ][:, j * windowsize[1] : min((j + 1) * windowsize[1], startsize[1])]
-            #configurable linear threshold for obstacle detection
+            # configurable linear threshold for obstacle detection
             avg = np.sum(window) / window.size
             if avg > threshold:
                 endimage[k, j] = 1
@@ -72,17 +72,11 @@ def pathmaker(point, history):
 
 
 def pathfinder(startpoint, endpoint, area):
-    """
     # pathfinder takes in a start and an endpoint, which must be 2d coordinates [x, y] that fit within area
     # area must be a binary 2d matrix where 1 is an obstacle pixel, and 0 a free path pixel
     # nonone values should be treated as zeros
 
-<<<<<<< HEAD
-    #this function outputs a list of points as defined above, starting from startpoint
-    """
-=======
     # this function outputs a list of points as defined above, starting from startpoint
->>>>>>> d07be7548d513bbcbadccca61acd0c75b32e8057
 
     xarea, yarea = np.shape(area)
     # A point is composed of x, y, path length, heuristic, and parent point x and y
@@ -146,7 +140,7 @@ def pathfinder(startpoint, endpoint, area):
                     if len(explored) > 0
                     else False
                 )
-                #check both conditions
+                # check both conditions
                 if not in_unexplored and not in_explored:
                     # Calculate heuristic: Euclidean distance to endpoint + path length
                     child[3] = (

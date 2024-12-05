@@ -96,9 +96,9 @@ class ThytanicController:
         """Read accelerometer from the Thytanic."""
 
         aw(self.robot_node.wait_for_variables({"acc"}))
-        print("accelerometer:", self.robot_node.v.acc[0])
+        """print("accelerometer:", self.robot_node.v.acc[0])
         print("accelerometer:", self.robot_node.v.acc[1])
-        print("accelerometer:", self.robot_node.v.acc[2])
+        print("accelerometer:", self.robot_node.v.acc[2])"""
         return self.robot_node.v.acc
 
     def rotate_robot(self, direction, rotation_speed):
@@ -175,19 +175,19 @@ class ThytanicController:
         """Compute control commands for the Thytanic."""
 
         x, y, theta = state_est
-        print("x", x, "y", y, "theta", theta)
+        # print("x", x, "y", y, "theta", theta)
         x_goal, y_goal = self.goal
-        print("goal index", self.goal_idx)
+        # print("goal index", self.goal_idx)
 
         # Compute polar coordinates relative to the goal
         delta_x = x_goal - x
         delta_y = y_goal - y
-        print("delta_x", delta_x, "delta_y", delta_y)
+        # print("delta_x", delta_x, "delta_y", delta_y)
         rho = np.sqrt(delta_x**2 + delta_y**2)  # Distance to the goal
         alpha = -theta + np.arctan2(-delta_y, delta_x)  # Orientation to the goal
         # beta = -alpha -theta # Final orientation adjustment
 
-        print("alpha", alpha)
+        # print("alpha", alpha)
         # Normalize alpha and beta to [-pi, pi]
         if alpha > np.pi:
             alpha = (alpha + np.pi) % (2 * np.pi) - np.pi
@@ -209,7 +209,7 @@ class ThytanicController:
         state_est = [self.x_est[0], self.x_est[2], self.x_est[4]]  # x y theta
         # Compute control commands
         rho, v, omega = self.astolfi_control(state_est)
-        print("v", v, "omega", omega)
+        # print("v", v, "omega", omega)
 
         # If close enough to the goal, stop
         if rho < self.min_distance:
@@ -230,8 +230,8 @@ class ThytanicController:
             v * self.mm_per_pixel / self.conversion_factor
             + omega * self.axle_length / 2
         ) / self.wheel_radius
-        print("left speed", left_speed)
-        print("right speed", right_speed)
+        # print("left speed", left_speed)
+        # print("right speed", right_speed)
         # get the speed infos to motors
         self.set_wheel_speed(left_speed, right_speed)
 
