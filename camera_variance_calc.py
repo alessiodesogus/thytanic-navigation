@@ -21,7 +21,7 @@ x_pos_vars, y_pos_vars, rot_vars = [], [], []
 x_pos_stds, y_pos_stds, rot_stds = [], [], []
 for i in range(1, 6):
     # reading camera estimation values
-    with open(f"camera_values{i}.txt", "r") as f:
+    with open(f"camera_variances/camera_values{i}.txt", "r") as f:
         xpos, ypos, rot = [], [], []
         for index, line in enumerate(f):
             line = line.replace("]", "")
@@ -51,10 +51,10 @@ for i in range(1, 6):
     rot_vars.append(np.var(rot))
     rot_stds.append(np.std(rot))
 
-print("x positionvariances", x_pos_vars)
-print("y positionvariances", y_pos_vars)
-print("orientation variances", rot_vars)
+print("x positionvariances", np.average(x_pos_vars))
+print("y positionvariances", np.average(y_pos_vars))
+print("orientation variances", np.average(rot_vars))
 
-print("x position standard deviations", x_pos_stds)
+"""print("x position standard deviations", x_pos_stds)
 print("y position standard deviations", y_pos_stds)
-print("orientation standard deviations", rot_stds)
+print("orientation standard deviations", rot_stds)"""

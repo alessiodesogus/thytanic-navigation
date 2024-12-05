@@ -1,10 +1,10 @@
 import numpy as np
 
 # Define all variances
-var_x = 0.1556817383717473  # a mesurer
-var_y = 0.10466897516520202  # a mesurer
-var_angle = 1.321882373271498  # a mesurer
-var_vel = 1.061875959140749
+var_x = 0.011652641682748977  # a mesurer
+var_y = 0.020724245655266565  # a mesurer
+var_angle = 0.0008948119074700559  # a mesurer
+var_vel = 1
 
 # Compute Kalman parameters
 var_vel_meas = var_vel / 2  # variance on velocity measurement
@@ -18,9 +18,9 @@ var_y = var_y / 2  # variance on position y state
 
 var_angle_meas = var_angle / 2  # variance on angle measurement
 var_angle = var_angle / 2  # variance on angle state
-var_angle = np.arctan2(var_y, var_x)  # variance on angle state
+# var_angle = np.arctan2(var_y, var_x)  # variance on angle state
 
-Ts = 0.1
+Ts = 0.15
 
 # Model matrices
 # model

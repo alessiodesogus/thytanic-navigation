@@ -4,13 +4,6 @@ from tdmclient import ClientAsync, aw
 import time
 
 
-def alpha(p1, p2):
-    # angle helper function
-    ang1 = np.arctan2(*p1[::-1])
-    ang2 = np.arctan2(*p2[::-1])
-    return (ang1 - ang2) % (2 * np.pi)
-
-
 class ThytanicState(Enum):
     """Define the operational states of the Thytanic."""
 
