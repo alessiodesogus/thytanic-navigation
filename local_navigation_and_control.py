@@ -23,21 +23,21 @@ class ThytanicController:
 
         # State and speed parameters
         self.robot_state = ThytanicState.STOP
-        self.normal_speed = 50  # NEED TO BE FINE-TUNED
-        self.avoidance_turn_speed = 80  # NEED TO BE FINE-TUNED
-        self.detection_threshold = 1500  # NEED TO BE FINE-TUNED
+        self.normal_speed = 50  
+        self.avoidance_turn_speed = 80  
+        self.detection_threshold = 1500  
         self.obstacle_side = None
         self.conversion_factor = 0.48
 
         # Astofi controller parameters
-        self.k_rho = 32  # NEED TO BE FINE-TUNED
-        self.k_alpha = 36  # NEED TO BE FINE-TUNED
-        # self.k_beta = -15 # NEED TO BE FINE-TUNED
+        self.k_rho = 32  
+        self.k_alpha = 36  
+        # self.k_beta = -15 
         self.wheel_radius = 21
         self.axle_length = 95
-        self.min_distance = 7  # NEED TO BE FINE-TUNED
-        self.max_distance = 15  # NEED TO BE FINE-TUNED
-        self.mm_per_pixel = 9.75  # NEED TO BE FINE-TUNED
+        self.min_distance = 7  
+        self.max_distance = 15  
+        self.mm_per_pixel = 9.75  
 
     def establish_connection(self):
         """Connect to the Thytanic and lock it."""
