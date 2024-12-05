@@ -1,9 +1,9 @@
 import numpy as np
 
 # Define all variances
-var_x = 0.011652641682748977  # a mesurer
-var_y = 0.020724245655266565  # a mesurer
-var_angle = 0.0008948119074700559  # a mesurer
+var_x = 0.011652641682748977 
+var_y = 0.020724245655266565 
+var_angle = 0.0008948119074700559 
 var_vel = 4.079861111111112
 
 # Compute Kalman parameters
@@ -97,12 +97,12 @@ def kalman_filter(thytanic, camera):
 
     # Kalman Gain
     i = y_true - np.dot(H, x_est_a_priori)  # innovation
-    S = np.dot(H, np.dot(P_est_a_priori, H.T)) + R
-    K = np.dot(P_est_a_priori, np.dot(H.T, np.linalg.inv(S)))  # Kalman gain
+    S = np.dot(H, np.dot(P_est_a_priori, H.T)) + R #measurement prediction covariance
+    K = np.dot(P_est_a_priori, np.dot(H.T, np.linalg.inv(S)))  # Kalman gain(how much the predictions should be corrected based on the measurements)
 
-    # Update Step
+    # A posteriori estimates
     x_est = x_est_a_priori + np.dot(K, i)
-    P_est = np.dot((np.eye(len(K)) - np.dot(K, H)), P_est_a_priori)  # adjust covariance
+    P_est = P_est_a_priori - np.dot(K,np.dot(H, P_est_a_priori)) 
 
     thytanic.x_est = x_est
     thytanic.P_est = P_est
