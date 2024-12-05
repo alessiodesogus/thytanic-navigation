@@ -23,12 +23,12 @@ def get_current_state(
             1 for obstacle
             2 for thymio
             3 for target
-        And the orientation of the Thymio in rad
+        And the position and orientation of the Thymio in pixels/rad
 
     Args:
         cam (cv2.VideoCapture): connected camera
         obstacle_range (list[np.ndarray]): range of allowed hsv values for obstacles
-        target_color (list[np.ndarray]): hsv range for target
+        target_range (list[np.ndarray]): hsv range for target
         th_back_range (list[np.ndarray]): range of allowed hsv values for the back of the thymio
         th_front_image (list[np.ndarray]): hsv range for the front of the thymio
         img_path (str): if this argument is equal to "", a new picture is taken by the supplied camera, otherwise the image is loaded from img_path
@@ -38,23 +38,21 @@ def get_current_state(
     else:
         img_arr = cv2.imread(img_path)
         img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGR2RGB)
-    """plt.imshow(img_arr)
-    plt.colorbar()
-    plt.imsave("output/picture2.png", img_arr)
-    plt.show()"""
+
     # reduce amount of pixels in image to speed up processing
     img_arr = cv2.pyrDown(cv2.pyrDown(img_arr))
+    # hsv color space is more robust against lighting changes when taking 3d norm
     img_arr_hsv = cv2.cvtColor(img_arr, cv2.COLOR_RGB2HSV)
+
     map_arr = np.empty((len(img_arr[:, 0]), len(img_arr[0])))
     obstacles = np.zeros_like(map_arr)
     back_image = np.zeros_like(map_arr)
     front_image = np.zeros_like(map_arr)
     # print(obstacle_range)
-    # looping through the input image and finding the norm for each possible option
+    # looping through the input image and checking for each pixel if it lies in one of the ranges
     for x in range(len(img_arr[:, 0])):
         for y in range(len(img_arr[0])):
             hsv = img_arr_hsv[x, y]
-            # hsv color space is more robust against lighting changes when taking 3d norm
             key = 0
             if in_hsv_range(hsv, obstacle_range):
                 key = 1
@@ -84,11 +82,6 @@ def get_current_state(
 
     tx, ty = np.where(map_arr == 2)
     thymio_pos = [np.average(tx), np.average(ty)]
-    """print("position of the thymio")
-    print(thymio_pos)
-
-    print("orientation")
-    print(np.rad2deg(orientation))"""
     # display map
     """plt.imshow(map_arr)
     plt.colorbar()
