@@ -43,7 +43,6 @@ def get_current_state(
     img_arr = cv2.pyrDown(cv2.pyrDown(img_arr))
     # hsv color space is more robust against lighting changes when taking 3d norm
     img_arr_hsv = cv2.cvtColor(img_arr, cv2.COLOR_RGB2HSV)
-
     map_arr = np.empty((len(img_arr[:, 0]), len(img_arr[0])))
     obstacles = np.zeros_like(map_arr)
     back_image = np.zeros_like(map_arr)
@@ -82,11 +81,6 @@ def get_current_state(
 
     tx, ty = np.where(map_arr == 2)
     thymio_pos = [np.average(tx), np.average(ty)]
-    # display map
-    """plt.imshow(map_arr)
-    plt.colorbar()
-    plt.imsave("output/map_hsv_cam.png", map_arr)
-    plt.show()"""
     # https://stackoverflow.com/questions/48013355/eliminating-number-of-connected-pixels-smaller-than-some-specified-number-thresh
     # remove noise in the output map
     labels, nlabels = ndimage.measurements.label(obstacles)
@@ -98,7 +92,7 @@ def get_current_state(
             map_arr[labels == label] = 0
     # display map
     """plt.imshow(map_arr)
-    plt.colorbar()"
+    plt.colorbar()
     plt.imsave("output/map_hsv_cam_noise_removed.png", map_arr)
     plt.show()"""
     return (
@@ -132,7 +126,7 @@ def init_cam() -> cv2.VideoCapture:
     cam = cv2.VideoCapture(0)
     if not cam.isOpened():
         cam = cv2.VideoCapture(1)
-    time.sleep(0.5)
+    time.sleep(1)
     return cam
 
 
