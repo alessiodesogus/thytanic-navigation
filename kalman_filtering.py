@@ -4,7 +4,7 @@ import numpy as np
 var_x = 0.011652641682748977  # a mesurer
 var_y = 0.020724245655266565  # a mesurer
 var_angle = 0.0008948119074700559  # a mesurer
-var_vel = 1
+var_vel = 4.079861111111112
 
 # Compute Kalman parameters
 var_vel_meas = var_vel / 2  # variance on velocity measurement
